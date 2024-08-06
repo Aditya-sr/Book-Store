@@ -46,7 +46,7 @@ const Freebook = () => {
 
   return (
     <>
-      <div className="max-screen-2xl  mx-auto md:px-20 px-4 my-10">
+      <div className="max-screen-2xl overflow-hidden mx-auto md:px-20 px-4 my-10">
        
        <div className="para">
 

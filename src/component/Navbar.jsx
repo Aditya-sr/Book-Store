@@ -48,6 +48,11 @@ const Navbar = () => {
     setMenuOpen(!menuOpen);
   };
 
+ const handleLogout=()=>{
+    logout();
+    navigate("sign-up")
+  };
+
   const element = document.documentElement;
 
   useEffect(() => {
@@ -98,9 +103,9 @@ const Navbar = () => {
           <li>
           {isLoggedIn ? (
             
-            <button onClick={logout} className=" text-gray-600  bg-fuchsia-300">
+            <button onClick={handleLogout}className=" text-gray-600  bg-fuchsia-300">
               Logout
-            </button>
+            </button >
           ) : (
             <button onClick={openModal} className=" text-gray-600 px-3 py-2 rounded-lg ml-2 bg-[#f5f5f5]">
               Login
@@ -200,7 +205,7 @@ const Navbar = () => {
                   <a href="/settings">Settings</a>
                 </li>
                 <li>
-                  <a onClick={logout} href="/logout">
+                  <a onClick={logout} href="/sign-up">
                     Logout
                   </a>
                 </li>

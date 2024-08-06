@@ -12,19 +12,21 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  useDisclosure
+  useDisclosure,
+  useToast
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 // import { editUser } from "../../../backend/controller/auth.controller";
 
 
 const Tables = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const initialRef=React.useRef(null);
   const finalRef=React.useRef(null);
@@ -37,13 +39,21 @@ const Tables = () => {
       role: ""
     }
   });
+  // const USerTable=()=>{
+   
+  //   const naviage =useNavigate();
+  //   const toast=useToast();
 
+
+  // }
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/auth/users");
-      console.log(response.data); // Check the structure here
-
-      // Ensure the response structure is as expected
+      const response = await axios.get("http://localhost:5000/auth/users", { withCredentials: true });
+      console.log(response.data);
+  
+      const currentUserResponse = await axios.get("http://localhost:5000/auth/me", { withCredentials: true });
+      setIsAdmin(currentUserResponse.data.role === "admin");
+  
       if (response.data && Array.isArray(response.data.users)) {
         setUsers(response.data.users);
       } else {
@@ -58,13 +68,24 @@ const Tables = () => {
       setLoading(false);
     }
   };
+  
+  
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const editUser = async (data) => {
     try {
-      const response = await axios.put(`http://localhost:5000/auth/edit/${editingUser.id}`, data);
+      const response = await axios.put(
+        `http://localhost:5000/auth/edit/${editingUser.id}`,
+        data,
+        {
+          withCredentials: true,
+          headers: {
+            'Authorization': `Bearer ${document.cookie.replace(/(?:(?:^|.*;\s*)uid\s*=\s*([^;]*).*$)|^.*$/, "$1")}`
+          }
+        }
+      );
       setUsers((prevUsers) =>
         prevUsers.map((user) => (user.id === editingUser.id ? response.data.user : user))
       );
@@ -76,19 +97,18 @@ const Tables = () => {
       setError(error.message || "Error editing user");
     }
   };
+  
 
- const deleteUser=async(id)=>{
-
-  try{
-    await axios.delete(`http://localhost:5000/auth/delete/${id}`);
-    setUsers((prevUsers)=>prevUsers.filter((user)=>user.id !==id));
-
-
-  }catch (error){
-    console.error("Error deleting user:", error);
-    setError(error.message || "Error deleting user");
+  const deleteUser = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/auth/delete/${id}`, { withCredentials: true });
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      setError(error.message || "Error deleting user");
+    }
   }
- }
+  
 
  const openEditModal=(user)=>{
   setEditingUser(user);
@@ -100,6 +120,11 @@ const Tables = () => {
  }
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
+
+  if(!isAdmin)
+  {
+    return <div className="text-4xl text-red-600 text-center mt-5">You are not permission to view this page</div>
+  }
 
   return (
     <div className="table-maib">

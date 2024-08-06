@@ -15,12 +15,16 @@ const Home = () => {
 
   return (
     <>
-    {/* <Navbar/> */}
-      <Banner/>
+
+
+       {/* <Navbar/> */}
+       <Banner />
       <Freebook/>
       {/* <Footer/> */}
       {/* <Freebook/> */}
       
+  
+   
     </>
   )
 }

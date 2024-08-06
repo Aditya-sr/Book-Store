@@ -5,10 +5,12 @@ const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = Cookies.get('uid');
     if (token) setIsLoggedIn(true);
+    setLoading(false)
   }, []);
 
   const login = (token) => {
@@ -22,7 +24,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout,loading }}>
       {children}
     </AuthContext.Provider>
   );

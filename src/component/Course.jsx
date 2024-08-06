@@ -9,7 +9,7 @@ const Course = () => {
   // console.log(list);
   return (
     <>
-      <div className="h-screen w-full  max-w-screen-2xl mx-auto md:px-20 px-4 overflow-y-auto ">
+      <div className="h-screen w-full overflow-hidden  max-w-screen-2xl mx-auto md:px-20 px-4 overflow-y-auto ">
         <div className=" flex  justify-center items-center mt-20">
           <p className="text-center text-xl mt-2 text-fuchsia-600">
             We're delighted to have you here :)
@@ -47,7 +47,7 @@ const Course = () => {
               <div className="  w-full flex justify-center flex-wrap gap-5">
                 {
                   list.map((item)=>(
-                    <div className="h-[300px] mt-14">
+                    <div className="mt-6">
                         <Cards key={item.id} item={item} />
                     </div>
                     

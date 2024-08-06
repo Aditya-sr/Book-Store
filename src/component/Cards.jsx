@@ -27,7 +27,7 @@ const Cards = ({ item }) => {
   };
   return (
     <>
-      <div className="mt-4 my-3 w-80 h-full space-x-5 hover:scale-105 duration-200  ">
+      <div className="mt-4 overflow-hidden my-3 w-80 h-[450px] space-x-5 hover:scale-105 duration-200  ">
         <div className="card">
           <figure>
             <img className="" src={item.image} alt="Shoes" />

@@ -1,34 +1,37 @@
-import React from "react";
-import { Link, useNavigate,Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import CloseButton from "./CloseButton";
 import { useForm } from "react-hook-form";
 import axios from "axios"; // Make sure axios is imported
 
-import { useToast } from "@chakra-ui/react"; // Import useToast
-import { Button, Wrap, WrapItem } from "@chakra-ui/react"
+import { FormControl, FormLabel, Select, Spinner, useStatStyles, useToast } from "@chakra-ui/react"; // Import useToast
+import { Button, Wrap, WrapItem } from "@chakra-ui/react";
 import Login from "./Login";
 
 const Signup = () => {
+  const [loading,setLoading]=useState(false)
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm();
+
   const Navigate = useNavigate();
   const toast = useToast();
 
-  const handleLoginRedirect=()=>{
-    Navigate('/home');
-
-  }
+  const handleLoginRedirect = () => {
+    Navigate("/home");
+  };
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:5000/auth/register",
         data
       );
-      console.log('Response Data',response.data);
+      console.log("Response Data", response.data);
       toast({
         title: "User registered successfully!",
         status: "success",
@@ -42,14 +45,14 @@ const Signup = () => {
     } catch (error) {
       console.error("There was an error registering the user!", error);
       if (error.response) {
-        console.error('Error response data:', error.response.data);
+        console.error("Error response data:", error.response.data);
         toast({
           title: error.response.data.error || "Registration failed!",
           status: "error",
           duration: 3000,
           isClosable: true,
           position: "top-right",
-        });       
+        });
       } else {
         console.error("Unexpected error:", error.message);
         toast({
@@ -58,11 +61,12 @@ const Signup = () => {
           duration: 3000,
           isClosable: true,
           position: "top-right",
-        });      
+        });
       }
+    }finally{
+      setLoading(false);
     }
   };
-
 
   return (
     <div className="w-full h-screen bg-[f5f5f5] flex justify-center items-center bg-[#f5f5f5]">
@@ -74,6 +78,15 @@ const Signup = () => {
               onSubmit={handleSubmit(onSubmit)}
               className="flex justify-center items-center"
             >
+               {loading ? (
+                <Spinner
+                  thickness="4px"
+                  speed="0.65s"
+                  emptyColor="gray.200"
+                  color="blue.500"
+                  size="xl"
+                />
+              ) : (
               <div>
                 <div className="form-div space-y-8 mb-5">
                   <h1 className="font-bold text-2xl text-black">Sign-Up</h1>
@@ -99,6 +112,19 @@ const Signup = () => {
                       </span>
                     )}
                   </label>
+                  <FormControl className="w-80">
+                <FormLabel className="text-lg">User Role</FormLabel>
+                <Select
+                  placeholder="Select role"
+                  {...register("role", { required: true })}
+                  className="border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </Select>
+                {errors.role && <span className="text-red-700">This field is required</span>}
+              </FormControl>
+
                   <label className="input input-bordered flex items-center gap-2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -146,24 +172,24 @@ const Signup = () => {
                     )}
                   </label>
                 </div>
-                <button className="bg-red-600 px-3 py-3 rounded-lg hover:btn glass">Submit</button>
+                <button className="bg-red-600 px-3 py-3 rounded-lg hover:btn glass">
+                  Submit
+                </button>
                 <div className="flex justify-center items-center">
                   <p className="mt-4 text-black">
                     Have Account
                     <span className="text-blue-600 ml-2">
                       <Link
-                     
                         to="/home"
                         className="hover:shadow-2xl transition-transform duration-300 ease-in-out"
                       >
-                        <button onClick={handleLoginRedirect}>
-                          login 
-                        </button>
+                        <button onClick={handleLoginRedirect}>login</button>
                       </Link>
                     </span>
                   </p>
                 </div>
               </div>
+              )}
             </form>
           </div>
         </div>
