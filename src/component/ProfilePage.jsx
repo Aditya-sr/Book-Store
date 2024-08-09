@@ -14,6 +14,7 @@ import {
   Text,
   Image,
 } from "@chakra-ui/react";
+import { Toast, useToast } from "@chakra-ui/react";
 
 const ProfilePage = () => {
   const [profilePic, setProfilePic] = useState(
@@ -28,6 +29,9 @@ const ProfilePage = () => {
     formState: { errors },
     setValue
   } = useForm();
+
+  const toast = useToast();
+
 
   const [isHover, setIsHovered] = useState(false);
 
@@ -45,8 +49,23 @@ const ProfilePage = () => {
         "Content-Type": "application/json", // Specify that you are sending JSON data
       },
     });
+    toast({
+        title: "User registered successfully!",
+        status: "success",
+        duration: 1000,
+        isClosable: true,
+        position: "top-right",
+      });
       console.log("Data saved successfully", response.data);
+      
     } catch (error) {
+        toast({
+            title: error.response.data.error || "Registration failed!",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "top-right",
+          });
       console.error("Error creating profile", error);
     }
   };

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { UseDispatch,useDispatch,useSelector } from "react-redux";
+import { addItemToCart,removeItemFromCart } from "../Redux/savedCartSlice";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import list from "../assets/list.json";
@@ -6,6 +8,13 @@ import list from "../assets/list.json";
 const Cards = ({ item }) => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
+  const dispatch = useDispatch();
+  
+  const isFavorite = useSelector((state) =>
+    state.savedCart.items.some((cartItem) => cartItem.id === item.id)
+  )
+
+
   const handleRating = (rate) => {
     setRating(rate);
     // sethover(rating);
@@ -25,6 +34,15 @@ const Cards = ({ item }) => {
     }
     return "";
   };
+
+  const toggleFavorite=()=>{
+    if(isFavorite){
+      dispatch(removeItemFromCart(item))
+    }
+    else{
+      dispatch(addItemToCart(item))
+    }
+  }
   return (
     <>
       <div className="mt-4 overflow-hidden my-3 w-80 h-[450px] space-x-5 hover:scale-105 duration-200  ">
@@ -40,7 +58,17 @@ const Cards = ({ item }) => {
             <p>{item.summary}</p>
             <div className="card-actions flex  justify-between">
               <div className="badge badge-outline mb-36">{item.price}</div>
-              <div className="badge badge-outline">Products</div>
+              <button
+            className=" mt-2 flex items-center space-x-2 text-red-500 hover:text-red-700 focus:outline-none"
+            onClick={toggleFavorite}
+          >
+            <i
+              className={`fas fa-heart ${
+                isFavorite ? 'text-red-600' : 'text-gray-300'
+              }`}
+            ></i>
+            <span>{isFavorite ? 'Favorited' : 'Add to Favorite'}</span>
+          </button>            
               <div className="mt-4">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => (

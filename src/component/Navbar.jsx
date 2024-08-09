@@ -88,9 +88,13 @@ const Navbar = () => {
     <>
       <nav>
         <ul className="flex">
+        <li className="text-gray-600 font-semibold">
+            <Link to="/saved-item">My Books</Link>
+          </li>
           <li className="text-gray-600 font-semibold">
             <Link to="/home">Home</Link>
           </li>
+          
           <li className="text-gray-600 font-semibold">
             <Link to="/course">Course</Link>
           </li>

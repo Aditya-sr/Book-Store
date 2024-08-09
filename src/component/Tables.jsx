@@ -13,11 +13,15 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  useToast
+  useToast,
 } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"
+import { useQuery } from "@tanstack/react-query";;
+// import NotFoundPage from "./Unauthorized";
 // import { editUser } from "../../../backend/controller/auth.controller";
+
+
 
 
 const Tables = () => {
@@ -26,53 +30,157 @@ const Tables = () => {
   const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
   const [editingUser, setEditingUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false)
-
-  const initialRef=React.useRef(null);
-  const finalRef=React.useRef(null);
-
   const { register, handleSubmit, setValue, reset } = useForm({
     defaultValues: {
       username: "",
       email: "",
       password: "",
-      role: ""
-    }
+      role: "",
+    },
   });
-  // const USerTable=()=>{
-   
-  //   const naviage =useNavigate();
-  //   const toast=useToast();
+
+  const initialRef = React.useRef(null);
+  const finalRef = React.useRef(null);
+  const navigate = useNavigate();
 
 
-  // }
-  const fetchUsers = async () => {
+  const fetchUsersData = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/auth/users", { withCredentials: true });
-      console.log(response.data);
+      const token = document.cookie.replace(
+        /(?:(?:^|.*;\s*)uid\s*=\s*([^;]*).*$)|^.*$/,
+        '$1'
+      );
   
-      const currentUserResponse = await axios.get("http://localhost:5000/auth/me", { withCredentials: true });
-      setIsAdmin(currentUserResponse.data.role === "admin");
-  
-      if (response.data && Array.isArray(response.data.users)) {
-        setUsers(response.data.users);
-      } else {
-        console.error("Unexpected response structure:", response.data);
-        setError("Unexpected response structure");
-      }
-      
-      setLoading(false);
+      const response = await axios.get('http://localhost:5000/auth/users', {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log('Fetched users data:', response.data.users); // Debug log
+      setUsers(response.data.users); // Set the users data in state
     } catch (error) {
-      console.error("Error fetching users:", error);
-      setError(error.message || "Error fetching users");
-      setLoading(false);
+      console.error('Error fetching users:', error);
     }
   };
   
-  
   useEffect(() => {
-    fetchUsers();
+    fetchUsersData();
   }, []);
+  
+  const fetchCurrentUser = async () => {
+    const token = document.cookie.replace(
+      /(?:(?:^|.*;\s*)uid\s*=\s*([^;]*).*$)|^.*$/,
+      "$1"
+    );
+  
+    const response = await axios.get("http://localhost:5000/auth/me", {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  };
+
+
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    isError: usersError,
+    error: usersErrorDetail,
+  } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsersData,
+    retry: false,
+    onError: (err) => {
+      if (err.response) {
+        if (err.response.status === 401 || err.response.status === 403) {
+          console.error("Unauthorized access:", err.response.data);
+          navigate("/not-found");
+        } else {
+          console.error("Error fetching users:", err.response.data);
+          navigate("/not-found");
+        }
+      }
+    },
+    onSuccess: (data) => {
+      console.log("Users fetched successfully:", data); // Debug log
+      setUsers(data); // Set the users state
+    },
+  });
+
+  const {
+    data: currentUser,
+    isLoading: currentUserLoading,
+    isError: currentUserError,
+  } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: fetchCurrentUser,
+    onError: (err) => {
+      console.error("Error fetching current user:", err);
+    },
+  });
+
+  const isAdmin = currentUser?.role === "admin";
+
+  
+
+ 
+
+
+  // const USerTable=()=>{
+
+  //   const naviage =useNavigate();
+  //   const toast=useToast();
+
+  // }
+  // const fetchUsers = async () => {
+  //   try {
+  //     const response = await axios.get("http://localhost:5000/auth/users", {
+  //       withCredentials: true,
+  //     });
+  //     console.log(response.data);
+
+  //     const currentUserResponse = await axios.get(
+  //       "http://localhost:5000/auth/me",
+  //       { withCredentials: true }
+  //     );
+  //     setIsAdmin(currentUserResponse.data.role === "admin");
+
+  //     if (response.data && Array.isArray(response.data.users)) {
+  //       setUsers(response.data.users);
+  //     } else {
+  //       console.error("Unexpected response structure:", response.data);
+  //       setError("Unexpected response structure");
+  //       navigate("/not-found");
+  //     }
+  //   } catch (error) {
+  //     if (error.response) {
+  //       // Handle specific error status codes
+  //       if (error.response.status === 401) {
+  //         console.error("Unauthorized access:", error.response.data);
+  //         navigate("/not-found");
+  //       } else if (error.response.status === 403) {
+  //         console.error("Forbidden access:", error.response.data);
+  //         navigate("/not-found");
+  //       } else {
+  //         console.error("Error fetching users:", error.response.data);
+  //         setError("An error occurred while fetching users");
+  //         navigate("/not-found");
+  //       }
+  //     } else {
+  //       console.error("Error fetching users:", error);
+  //       setError(error.message || "Error fetching users");
+  //       navigate("/not-found");
+  //     }
+  //   } finally {
+  //     setLoading(false); // Ensure loading is set to false in finally block
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchUsersData  }, []);
 
   const editUser = async (data) => {
     try {
@@ -82,12 +190,17 @@ const Tables = () => {
         {
           withCredentials: true,
           headers: {
-            'Authorization': `Bearer ${document.cookie.replace(/(?:(?:^|.*;\s*)uid\s*=\s*([^;]*).*$)|^.*$/, "$1")}`
-          }
+            Authorization: `Bearer ${document.cookie.replace(
+              /(?:(?:^|.*;\s*)uid\s*=\s*([^;]*).*$)|^.*$/,
+              "$1"
+            )}`,
+          },
         }
       );
       setUsers((prevUsers) =>
-        prevUsers.map((user) => (user.id === editingUser.id ? response.data.user : user))
+        prevUsers.map((user) =>
+          user.id === editingUser.id ? response.data.user : user
+        )
       );
       setEditingUser(null);
       reset();
@@ -97,35 +210,39 @@ const Tables = () => {
       setError(error.message || "Error editing user");
     }
   };
-  
 
   const deleteUser = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/auth/delete/${id}`, { withCredentials: true });
+      await axios.delete(`http://localhost:5000/auth/delete/${id}`, {
+        withCredentials: true,
+      });
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
     } catch (error) {
       console.error("Error deleting user:", error);
       setError(error.message || "Error deleting user");
     }
+  };
+
+  const openEditModal = (user) => {
+    setEditingUser(user);
+    setValue("username", user.username);
+    setValue("password", user.password);
+    setValue("email", user.email);
+    setValue("role", user.role);
+    onOpen();
+  };
+
+  // if (usersLoading || currentUserLoading) return <p>Loading...</p>;
+  if (usersError) return <p>Error: {usersErrorDetail.message}</p>;
+  // if (currentUserError) return <p>Error: {currentUserError.message}</p>;
+
+  if (!isAdmin) {
+    return (
+      <div className="text-4xl text-red-600 text-center mt-5">
+        You do not have permission to view this page
+      </div>
+    );
   }
-  
-
- const openEditModal=(user)=>{
-  setEditingUser(user);
-  setValue("username",user.username)
-  setValue("password",user.password)
-  setValue("email",user.email)
-  setValue("role",user.role)
-  onOpen();
- }
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-
-  if(!isAdmin)
-  {
-    return <div className="text-4xl text-red-600 text-center mt-5">You are not permission to view this page</div>
-  }
-
   return (
     <div className="table-maib">
       <section className="container px-4 mx-auto">
@@ -202,7 +319,7 @@ const Tables = () => {
                       >
                         Email address
                       </th>
-                    
+
                       <th
                         scope="col"
                         className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500 dark:text-gray-400"
@@ -223,7 +340,7 @@ const Tables = () => {
                             <div className="flex items-center gap-x-2">
                               <div>
                                 <h2 className="font-medium text-gray-800 dark:text-white">
-                                  {user.username}
+                                  {user.username} ddd
                                 </h2>
                               </div>
                             </div>
@@ -235,22 +352,23 @@ const Tables = () => {
                         <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
                           {user.email}
                         </td>
-                       
-                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
 
-                          <button 
-                          onClick={()=>openEditModal(user)}
-                          colorScheme="blue"
-                          size="sm"
-                          className="text-blue-500 hover:text-blue-700">
+                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
+                          <button
+                            onClick={() => openEditModal(user)}
+                            colorScheme="blue"
+                            size="sm"
+                            className="text-blue-500 hover:text-blue-700"
+                          >
                             Edit
                           </button>
-                          <button 
-                          onClick={()=>deleteUser(user.id)}
-                          colorScheme="red"
-                          size="sm"
-                          ml={4}
-                          className="text-red-500 hover:text-red-700 ml-4">
+                          <button
+                            onClick={() => deleteUser(user.id)}
+                            colorScheme="red"
+                            size="sm"
+                            ml={4}
+                            className="text-red-500 hover:text-red-700 ml-4"
+                          >
                             Delete
                           </button>
                         </td>
@@ -264,56 +382,55 @@ const Tables = () => {
         </div>
       </section>
       <Modal
-  initialFocusRef={initialRef}
-  finalFocusRef={finalRef}
-  isOpen={isOpen}
-  onClose={onClose}
->
-  <ModalOverlay />
-  <ModalContent>
-    <ModalHeader>Edit User</ModalHeader>
-    <ModalCloseButton />
-    <ModalBody pb={6}>
-      <form onSubmit={handleSubmit(editUser)}>
-        <FormControl>
-          <FormLabel>Username</FormLabel>
-          <Input
-            ref={initialRef}
-            {...register("username")}
-            placeholder="Username"
-          />
-        </FormControl>
+        initialFocusRef={initialRef}
+        finalFocusRef={finalRef}
+        isOpen={isOpen}
+        onClose={onClose}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit User</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <form onSubmit={handleSubmit(editUser)}>
+              <FormControl>
+                <FormLabel>Username</FormLabel>
+                <Input
+                  ref={initialRef}
+                  {...register("username")}
+                  placeholder="Username"
+                />
+              </FormControl>
 
-        <FormControl mt={4}>
-          <FormLabel>Email</FormLabel>
-          <Input {...register("email")} placeholder="Email" />
-        </FormControl>
+              <FormControl mt={4}>
+                <FormLabel>Email</FormLabel>
+                <Input {...register("email")} placeholder="Email" />
+              </FormControl>
 
-        <FormControl mt={4}>
-          <FormLabel>Password</FormLabel>
-          <Input
-            type="password"
-            {...register("password")}
-            placeholder="Password"
-          />
-        </FormControl>
+              <FormControl mt={4}>
+                <FormLabel>Password</FormLabel>
+                <Input
+                  type="password"
+                  {...register("password")}
+                  placeholder="Password"
+                />
+              </FormControl>
 
-        <FormControl mt={4}>
-          <FormLabel>Role</FormLabel>
-          <Input {...register("role")} placeholder="Role" />
-        </FormControl>
+              <FormControl mt={4}>
+                <FormLabel>Role</FormLabel>
+                <Input {...register("role")} placeholder="Role" />
+              </FormControl>
 
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} type="submit">
-            Save
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
-        </ModalFooter>
-      </form>
-    </ModalBody>
-  </ModalContent>
-</Modal>
-
+              <ModalFooter>
+                <Button colorScheme="blue" mr={3} type="submit">
+                  Save
+                </Button>
+                <Button onClick={onClose}>Cancel</Button>
+              </ModalFooter>
+            </form>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
