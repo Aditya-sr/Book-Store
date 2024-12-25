@@ -28,7 +28,7 @@ const SavedCards = () => {
                   <div className="badge badge-outline">{item.price}</div>
                   <button
                     className="text-red-500 hover:text-red-700 focus:outline-none"
-                    onClick={() => dispatch(removeItemFromCart(item))}
+                    // onClick={() => dispatch(removeItemFromCart(item))}
                   >
                     <i className="fas fa-trash"></i> Remove
                   </button>

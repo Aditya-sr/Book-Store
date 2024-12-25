@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { UseDispatch,useDispatch,useSelector } from "react-redux";
-import { addItemToCart,removeItemFromCart } from "../Redux/savedCartSlice";
+import { addItemToCart } from "../Redux/savedCartSlice";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import list from "../assets/list.json";
@@ -37,7 +37,7 @@ const Cards = ({ item }) => {
 
   const toggleFavorite=()=>{
     if(isFavorite){
-      dispatch(removeItemFromCart(item))
+      // dispatch(removeItemFromCart(item))
     }
     else{
       dispatch(addItemToCart(item))
